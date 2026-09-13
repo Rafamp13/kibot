@@ -75,6 +75,12 @@ async def oauth_callback(request: Request, code: str | None = None, state: str |
             "redirect_uri": f"{PUBLIC_URL}/oauth/callback",
         }, headers={"Content-Type": "application/x-www-form-urlencoded"})
         if token_resp.status_code >= 400:
+            import logging
+            logging.getLogger("kibot").error(
+                "OAuth token error: HTTP %s - %s",
+                token_resp.status_code,
+                token_resp.text[:1000]
+            )
             return RedirectResponse("/dashboard?login=token_error")
         token = token_resp.json().get("access_token")
         if not token:

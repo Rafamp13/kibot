@@ -283,6 +283,27 @@ async def main():
     web_port = int(os.getenv("PORT", os.getenv("WEB_PORT", "8080")))
     web_host = os.getenv("WEB_HOST", "0.0.0.0")
     server = uvicorn.Server(uvicorn.Config(web_app, host=web_host, port=web_port, log_level="info"))
+    async def run_bot_safely():
+        try:
+            await bot.start(config.TOKEN)
+        except Exception as e:
+            import logging
+            logging.getLogger("kibot").error(
+                "Discord não conseguiu iniciar (%s). O servidor web continuará online.",
+                e
+            )
+
     async with bot:
-        await asyncio.gather(bot.start(config.TOKEN), server.serve())
+        bot_task = asyncio.create_task(run_bot_safely())
+        server_task = asyncio.create_task(server.serve())
+
+        done, pending = await asyncio.wait(
+            {bot_task, server_task},
+            return_when=asyncio.FIRST_COMPLETED
+        )
+
+        for task in pending:
+            task.cancel()
+
+        await asyncio.gather(*pending, return_exceptions=True)
 if __name__=="__main__": asyncio.run(main())

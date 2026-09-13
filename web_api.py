@@ -87,9 +87,30 @@ async def oauth_callback(request: Request, code: str | None = None, state: str |
             return RedirectResponse("/dashboard?login=token_error")
         user_resp = await client.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {token}"})
         guild_resp = await client.get("https://discord.com/api/users/@me/guilds", headers={"Authorization": f"Bearer {token}"})
-    request.session["user"] = user_resp.json()
-    request.session["guilds"] = guild_resp.json() if guild_resp.status_code < 400 else []
-    request.session["oauth_token"] = token
+    user = user_resp.json()
+guilds = guild_resp.json() if guild_resp.status_code < 400 else []
+
+request.session.clear()
+
+request.session["user"] = {
+    "id": user.get("id"),
+    "username": user.get("username"),
+    "global_name": user.get("global_name"),
+    "avatar": user.get("avatar"),
+    "discriminator": user.get("discriminator"),
+}
+
+request.session["guilds"] = [
+    {
+        "id": g.get("id"),
+        "name": g.get("name"),
+        "owner": bool(g.get("owner")),
+        "permissions": g.get("permissions", "0"),
+    }
+    for g in guilds
+]
+
+return RedirectResponse("/dashboard")
     return RedirectResponse("/dashboard")
 
 @app.get("/logout")

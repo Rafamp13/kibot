@@ -295,15 +295,6 @@ async def main():
 
     async with bot:
         bot_task = asyncio.create_task(run_bot_safely())
-        server_task = asyncio.create_task(server.serve())
+        await server.serve()
 
-        done, pending = await asyncio.wait(
-            {bot_task, server_task},
-            return_when=asyncio.FIRST_COMPLETED
-        )
-
-        for task in pending:
-            task.cancel()
-
-        await asyncio.gather(*pending, return_exceptions=True)
 if __name__=="__main__": asyncio.run(main())

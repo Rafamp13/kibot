@@ -111,7 +111,7 @@ request.session["guilds"] = [
 ]
 
 return RedirectResponse("/dashboard")
-    return RedirectResponse("/dashboard")
+return RedirectResponse("/dashboard")
 
 @app.get("/logout")
 async def logout(request: Request):

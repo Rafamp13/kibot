@@ -1,0 +1,3 @@
+Kibot V51 — SITE + DASHBOARD CONECTADO
+Build: 2026-09-13
+Base: V50
